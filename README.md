@@ -137,9 +137,9 @@ CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 
 They should be saved in a file called env which should not be uploaded to github (by using .gitignore) . Example of env:
 
-`CLIENT_ID=XXXXXXXXXXXXXXXXXXXXX <br>
-CLIENT_SECRET=XYXYXYXYXYXYXYXYXXYXYXY <br>
-AAP_NAME=spotify-app`
+`CLIENT_ID=XXXXXXXXXXXXXXXXXXXXX` <br>
+`CLIENT_SECRET=XYXYXYXYXYXYXYXYXXYXYXY` <br>
+`AAP_NAME=spotify-app`
 
 
 <a id='2-2-b'></a>
@@ -148,6 +148,7 @@ The `get_token` function in `authentication.py` takes a Client ID, Client secret
 
 The output of this function is of the form:
 `<class 'requests.models.Response'>`
+
 `{'access_token': 'BQAkv5-zBtCzqoVPCO-bRz6xmWCIPrh323m6gvkJbXVTuDQCBjpbQQcFHlyDOiqJwHFe8fxmWDzFBUV1My5JdQxtujvSPhc3Pyv-duA85_zwTWLKwKAKEkjCRmIBjrJsdohoqBcjzgs', 'token_type': 'Bearer', 'expires_in': 3600}`
 
 - It provides a temporary access token. 
@@ -186,7 +187,8 @@ The `get_new_releases` function:
 
 Usage: pass the URL and the `access_token` value from the `token` object that you obtained before.
 
-`URL_NEW_RELEASES = "https://api.spotify.com/v1/browse/new-releases"` 
+`URL_NEW_RELEASES = "https://api.spotify.com/v1/browse/new-releases"`
+
 `releases_response = get_new_releases(url=URL_NEW_RELEASES, access_token=token.get('access_token'))`
 
 ##### Result
