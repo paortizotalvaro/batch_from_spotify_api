@@ -137,9 +137,8 @@ CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 
 and should be saved in a file called env which should not be uploaded to github (by using .gitignore) . Example of env:
 
-CLIENT_ID=XXXXXXXXXXXXXXXXXXXXX
+`CLIENT_ID=XXXXXXXXXXXXXXXXXXXXX
 CLIENT_SECRET=XYXYXYXYXYXYXYXYXXYXYXY
-AAP_NAME=spotify-app
+AAP_NAME=spotify-app`
 
 
-L:\My Drive\OurLearning\Data_Engineering\DE_Professional_Certificate_DeepLearningAI_Coursera\DE_Professional_Certificate_Course2_Labs\DE_Professional_Certificate_Course2_Week2_Lab1\BatchIngestion_SpotifyAPI
