@@ -18,15 +18,15 @@ I added my own extra notes and reorganized the structure of the document for my 
 - [ 1 - Create a Spotify APP](#1)
 - [ 2 - Understand the Basics of APIs](#2)
   - [ 2.1 - Packages to use](#2-1)
+  - [ 2.2 - Authentication Process](#2-2)
+      - [ Client ID and Client secret](#2-2-a)
+      - [ get_token()](#2-2-b)      
+      - [ get_auth_header()](#2-2-c)      
+  - [ 2.3 - Perform a Request to New Releases](#2-3)
 
-
-
-  - [ 2. - Get Token](#2-1)
-  - [ 2.2 - Get New Releases](#2-2)
-    - [ Exercise 1](#ex01)
-  - [ 2.3 - Pagination](#2-3)
-    - [ Exercise 2](#ex02) 
-    - [ Exercise 3](#ex03)
+  
+  
+  
   - [ 2.4 - Optional - API Rate Limits](#2-4)
 - [ 3 - Batch pipeline](#3)
   - [ Exercise 4](#ex04)
@@ -114,20 +114,20 @@ from dotenv import load_dotenv
 
 
 <a id='2-1'></a>
-### 2.1 - Get Token
+### 2.1 - Authentication Process
 
 The first step when working with an API is to understand the authentication process. <br>
-For that, the Spotify APP generates a Client ID and a Client secret that you will use to generate an access token. <br> 
+
+Since each API is developed with a particular purpose, it is necessary for you to always read and understand the nuances of each API so you can access the data responsibly. 
+
+<a id='2-2-a'></a>
+### Client ID and Client secret
+The Spotify APP generates a Client ID and a Client secret that you will use to generate an access token. <br> 
 The access token is a string that contains the credentials and permissions that you can use to access a given resource. <br>
 You can find more about it in the [API documentation](https://developer.spotify.com/documentation/web-api/concepts/access-token). <br>
 
-Since each API is developed with a particular purpose, it is necessary for you to always read and understand the nuances of each API
- so you can access the data responsibly. 
+The values of the client_id and client_secret that you stored in the src/env file are assigned to variables in the main() as enviroment variables:
 
-Let's create some variables to hold the values of the client_id and client_secret that you stored in the src/env file.
-
-
-In this package, the environment variables are loaded in the main() 
 ```python
 load_dotenv('./src/env', override=True)
 
@@ -135,10 +135,60 @@ CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 ```
 
-and should be saved in a file called env which should not be uploaded to github (by using .gitignore) . Example of env:
+They should be saved in a file called env which should not be uploaded to github (by using .gitignore) . Example of env:
 
-`CLIENT_ID=XXXXXXXXXXXXXXXXXXXXX
-CLIENT_SECRET=XYXYXYXYXYXYXYXYXXYXYXY
+`CLIENT_ID=XXXXXXXXXXXXXXXXXXXXX <br>
+CLIENT_SECRET=XYXYXYXYXYXYXYXYXXYXYXY <br>
 AAP_NAME=spotify-app`
 
+
+<a id='2-2-b'></a>
+### get_token()
+The `get_token` function in `authentication.py` takes a Client ID, Client secret and a URL as input, and performs a POST request to that URL to obtain an access token using the client credentials. 
+
+The output of this function is of the form:
+`<class 'requests.models.Response'>`
+`{'access_token': 'BQAkv5-zBtCzqoVPCO-bRz6xmWCIPrh323m6gvkJbXVTuDQCBjpbQQcFHlyDOiqJwHFe8fxmWDzFBUV1My5JdQxtujvSPhc3Pyv-duA85_zwTWLKwKAKEkjCRmIBjrJsdohoqBcjzgs', 'token_type': 'Bearer', 'expires_in': 3600}`
+
+- It provides a temporary access token. 
+- The `expires_in` field tells the duration of this token in seconds. 
+  When this token expires, requests will fail and an error object will be returned holding a status code of 401. This status code means that the request is unauthorized.
+
+
+<a id='2-2-c'></a>  
+### get_auth_header()  
+Whenever you send an API request to the spotify API, you need to include in the request the access token, as an authorization header following a certain format. <br>
+The function `get_auth_header` in `authentication.py` expects the access token and returns the authorization header that can be included in the API request. 
+
+
+
+<a id='2-3'></a>
+### Perform a Request to New Releases
+__Each API manages responses in its own way so it is highly recommended to read the documentation and understand the nuances behind the API endpoints you are working with.__
+
+#### Simple Request: get_new_releases()
+The `get_new_releases` function:
+
+1. Calls the function `get_auth_header`and passes to it the access token (which is specified as input to the `get_new_releases` function). 
+2. It saves the output of `get_auth_header` to a variable called `headers`.
+3. `request_url` variable contains the URL used to perform a `get()` request, together with `headers`
+  ```python
+  response = requests.get(url=request_url, headers=headers)
+  ```
+3. Request `response` is an object of type `requests.models.Response`. This object has a method named `json()` that allows you to transform the response content into a JSON object or plain Python dictionary. This method is used on the `response` object to return the content as a Python dictionary.
+
+4. The `URL_NEW_RELEASES` is the URL or endpoint to perform calls to the API. <br>
+  It is defined in main()
+  
+  ```python
+  URL_NEW_RELEASES = "https://api.spotify.com/v1/browse/new-releases"
+  ```
+
+Usage: pass the URL and the `access_token` value from the `token` object that you obtained before.
+
+`URL_NEW_RELEASES = "https://api.spotify.com/v1/browse/new-releases"` 
+`releases_response = get_new_releases(url=URL_NEW_RELEASES, access_token=token.get('access_token'))`
+
+##### Result
+The result is a JSON object that was trasnformed into a python dictionary. Exploring the structure should give:
 
