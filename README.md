@@ -23,8 +23,9 @@ I added my own extra notes and reorganized the structure of the document for my 
       - [ get_token()](#2-2-b)      
       - [ get_auth_header()](#2-2-c)      
   - [ 2.3 - Perform a Request to New Releases](#2-3)
-
-  
+      - [ Simple Request](#2-3-a)
+      - [ Pagination)](#2-3-b)
+      - [ get_paginated_new_releases())](#2-3-c)  
   
   
   - [ 2.4 - Optional - API Rate Limits](#2-4)
@@ -146,9 +147,8 @@ They should be saved in a file called env which should not be uploaded to github
 ### get_token()
 The `get_token` function in `authentication.py` takes a Client ID, Client secret and a URL as input, and performs a POST request to that URL to obtain an access token using the client credentials. 
 
-The output of this function is of the form:
-`<class 'requests.models.Response'>`
-
+The output of this function is of the form:<br>
+`<class 'requests.models.Response'>` <br>
 `{'access_token': 'BQAkv5-zBtCzqoVPCO-bRz6xmWCIPrh323m6gvkJbXVTuDQCBjpbQQcFHlyDOiqJwHFe8fxmWDzFBUV1My5JdQxtujvSPhc3Pyv-duA85_zwTWLKwKAKEkjCRmIBjrJsdohoqBcjzgs', 'token_type': 'Bearer', 'expires_in': 3600}`
 
 - It provides a temporary access token. 
@@ -164,9 +164,11 @@ The function `get_auth_header` in `authentication.py` expects the access token a
 
 
 <a id='2-3'></a>
-### Perform a Request to New Releases
-__Each API manages responses in its own way so it is highly recommended to read the documentation and understand the nuances behind the API endpoints you are working with.__
+### 2.3 - Perform a Request to New Releases
+*__Each API manages responses in its own way so it is highly recommended to read the documentation and understand the nuances behind the API endpoints you are working with.__*
 
+
+<a id='2-3-a'></a>
 #### Simple Request: get_new_releases()
 The `get_new_releases` function:
 
@@ -185,7 +187,8 @@ The `get_new_releases` function:
   URL_NEW_RELEASES = "https://api.spotify.com/v1/browse/new-releases"
   ```
 
-Usage: pass the URL and the `access_token` value from the `token` object that you obtained before.
+To Run: <br>
+pass the URL and the `access_token` value from the `token` object that you obtained before.
 
 `URL_NEW_RELEASES = "https://api.spotify.com/v1/browse/new-releases"`
 
@@ -193,4 +196,91 @@ Usage: pass the URL and the `access_token` value from the `token` object that yo
 
 ##### Result
 The result is a JSON object that was trasnformed into a python dictionary. Exploring the structure should give:
+
+```python
+releases_response.keys()
+```
+output: `dict_keys(['albums'])`
+
+```python
+releases_response.get('albums').keys()
+```
+output: dict_keys(['href', 'items', 'limit', 'next', 'offset', 'previous', 'total'])
+
+  - `'href'`: this is the URL used for the request just sent
+  - `'items'`:list of items returned
+  - `'limit'`: maximum number of items that can be returned in this request.
+  - `'offset'`: 
+  - `'total'`: total number available items to be returned in this endpoint
+  - `'previous'` and `'next'` will return the URL to the previous or next page respectively and they are based on the `offset` and `limit` parameters
+
+  
+
+
+<a id='2-3-b'></a>
+#### Pagination
+`'limit'` and `'offset'` are the base of pagination in this API endpoint.
+
+This limit on the number of elements returned is a common feature of several APIs and although in some cases you can modify such a limit, **a good practice is to use it with pagination** to get all the elements that can be returned. 
+
+Each API handles pagination differently. 
+
+For Spotify, the requests response provides you with two fields that allow you to query the different pages of your request: `previous` and `next`. In this case, there are two ways for you to explore the rest of the data:
+
+- you can use the value from the next parameter to get the direct URL for the next page of requests, or 
+
+- you can build the URL for the next page from scratch using the offset and limit parameters (make sure to update the offset parameter for the request). 
+
+<br>
+If you compare the URLs provided by the `href` and `next` fields, you can see that while the `limit` parameter remains the same, the `offset` parameter has increased with the same value as the one stored in `limit`.
+```json
+{
+...,
+'href': 'https://api.spotify.com/v1/browse/new-releases?offset=0&limit=20',
+...,
+'next': 'https://api.spotify.com/v1/browse/new-releases?offset=20&limit=20',
+...
+}
+```
+And for the next one it is:
+```json
+{
+...,
+'href': 'https://api.spotify.com/v1/browse/new-releases?offset=20&limit=20',
+...,
+'next': 'https://api.spotify.com/v1/browse/new-releases?offset=40&limit=20',
+...
+}
+```
+
+==> the `offset` increases by the value of the `limit`. 
+
+As the responses show that the `total` value is 100, this means that you can access the last page of responses by using an `offset` of 80, while keeping the `limit` value as 20.
+
+```json
+{
+...,
+'href': 'https://api.spotify.com/v1/browse/new-releases?offset=60&limit=20',
+...,
+'next': None,
+...
+}
+```
+In this case, the value of the `next` field is `None`, indicating that you reached the last page. On the other hand, you can see that `previous` contains the URL to request the data from the previous page, so you can even go backward if required.
+
+
+<a id='2-3-c'></a>
+#### get_paginated_new_releases()
+
+
+
+
+
+
+
+
+
+
+
+
 
