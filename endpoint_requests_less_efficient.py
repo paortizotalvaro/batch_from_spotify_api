@@ -265,16 +265,14 @@ def paginated_with_next_new_releases(
 
     while next_page:
 
-        ### START CODE HERE ### (~ 4 lines of code)
-        # Call the endpoint_request() function with the arguments specified in the kwargs dictionary.
+        # Make end point request and add the albums' items to the list of responses.
         response = endpoint_request(**kwargs)
-        # Use extend() method to add the albums' items to the list of responses.
         responses.extend(response.get('albums').get('items'))
-        # Reassign the value of next_page as the 'next' value from the response["albums"] dictionary.
+
+        # Update the kwargs dictionary:
+        # Set next_page with the 'next' value from the response["albums"] dictionary.
         next_page = response.get('albums').get('next')
-        # Update the kwargs dictionary: set the value of the key 'next' as the variable next_page.
         kwargs["next"] = next_page
-        ### END CODE HERE ###
 
         print(f"Executed request with URL: {response.get('albums').get('href')}.")
 

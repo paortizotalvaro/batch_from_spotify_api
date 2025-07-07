@@ -16,6 +16,7 @@ I added my own extra notes and reorganized the structure of the document for my 
 # Table of Contents
 
 - [ 1 - Create a Spotify APP](#1)
+
 - [ 2 - Understand the Basics of APIs](#2)
   - [ 2.1 - Packages to use](#2-1)
   - [ 2.2 - Authentication Process](#2-2)
@@ -29,22 +30,23 @@ I added my own extra notes and reorganized the structure of the document for my 
       - [ Pagination)](#2-4-a)  
       - [ paginated_with_offset_new_releases())](#2-4-b)    
       - [ paginated_with_next_new_releases())](#2-4-b)         
-      
-      
-  - [ 2.4 - Optional - API Rate Limits](#2-4)
-  
-
+            
 - [ 3 - Batch pipeline](#3)
   - [ Exercise 4](#ex04)
   - [ Exercise 5](#ex05)
   - [ Exercise 6](#ex06)
-- [ 4 - Optional - Spotipy SDK](#4)
-  - [ Exercise 7](#ex07)
+  
+  
+- [ 4 - Optional](#4)  
+  - [ 4.1 - Optional - API Rate Limits](#4-1)
+  - [ 4.1 - Optional - Spotipy SDK](#4-2)
+
+
 
 ---
 
 
-## 1 - Create a Spotify APP
+## <center> 1 - CREATE A SPOTIFY APP </center>
 
 To get access to the API resources, you need to create a Spotify account if you don't already have one. A trial account will be enough to complete this lab.
 
@@ -65,10 +67,10 @@ Here's the link to [the Spotify API documentation](https://developer.spotify.com
 - Album tracks in the second part ([endpoint](https://developer.spotify.com/documentation/web-api/reference/get-an-albums-tracks)).
 
 <a id='2'></a>
-## 2 - Understand the Basics of APIs
+## 2 - <center> UNDERSTAND THE BASICS OF APIs </center>
 
 <a id='2-1'></a>
-### 2.1 - Packages to use
+### 2.1 - Packages to Use
 
 #### requests
 Several packages in Python allow you to request data from an API; in this lab, you will use the `requests` package, 
@@ -119,8 +121,8 @@ from dotenv import load_dotenv
 
 
 
-<a id='2-1'></a>
-### 2.1 - Authentication Process
+<a id='2-2'></a>
+### 2.2 - Authentication Process
 
 The first step when working with an API is to understand the authentication process. <br>
 
@@ -295,6 +297,13 @@ Basic logic used in both options: <br>
 3. While loop: continue retrieving data from the endpoint as long as the offset is smaller than (total number of elemets - limit). <br>
   Append all the new data to the list new_releases_data
   
+__Usage option 2__
+```
+responses = paginated_with_offset_new_releases_option_2(endpoint_request=get_new_releases,
+                                   url=URL_NEW_RELEASES, 
+                                   access_token=token.get('access_token'), 
+                                   offset=0, limit=20)
+```
 
 
 
@@ -317,7 +326,91 @@ This allows for a much simpler logic
   Append all the new data to the list new_releases_data
 
 
+__Usage__
+```
+responses_with_next = paginated_with_next_new_releases(endpoint_request=get_new_releases, 
+                                                             url=URL_NEW_RELEASES, 
+                                                             access_token=token.get('access_token'))
+```
 
+
+<a id='3'></a>
+## <center> 3 - BATCH PIPELINE <\center>
+
+<a id='3-1'></a>
+### 3.1 - PENDING NAME HERE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+
+
+
+
+
+
+
+<a id='4'></a>
+## <center> 4 - OPTIONAL <\center>
+
+<a id='4-1'></a>
+### 4.1 - Optional - API Rate Limits
+
+Another important aspect to take into account when working with APIs is regarding the rate limits. Rate limiting is a mechanism used by APIs to control the number of requests that a client can make within a specified period of time. It helps prevent abuse or overload of the API by limiting the frequency or volume of requests from a single client. Here's how rate limiting typically works:
+
+- Request Quotas: APIs may enforce a maximum number of requests that a client can make within a given time window, for example, 100 requests per minute.
+
+- Time Windows: The time window specifies the duration over which the request quota is measured. For example, a rate limit of 100 requests per minute means that the client can make up to 100 requests in any 60-second period.
+
+- Response to Exceeding Limits: When a client exceeds the rate limit, the API typically responds with an error code (such as 429 Too Many Requests) or a message indicating that the rate limit has been exceeded. This allows clients to adjust their behavior accordingly, such as by implementing [exponential backoff](https://medium.com/bobble-engineering/how-does-exponential-backoff-work-90ef02401c65) and other retry strategies. (Check [here](https://harish-bhattbhatt.medium.com/best-practices-for-retry-pattern-f29d47cd5117) or [here](https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/)). 
+
+- Rate Limit Headers: APIs may include headers in the response to indicate the client's current rate limit status, such as the number of requests remaining until the limit resets or the time at which the limit will reset.
+
+Rate limiting helps maintain the stability and reliability of APIs by ensuring fair access to resources and protecting against abusive or malicious behavior. It also allows API providers to allocate resources more effectively and manage traffic loads more efficiently.
+
+You can also see more of the specifics of the rate limits of the Spotify Web API in the [documentation](https://developer.spotify.com/documentation/web-api/concepts/rate-limits). Particularly, this API doesn't enforce a hard limit for the number of requests done but it works dynamically based on the number of calls within a rolling 30 seconds window. You can find some [blogs](https://medium.com/mendix/limiting-your-amount-of-calls-in-mendix-most-of-the-time-rest-835dde55b10e#:~:text=The%20Spotify%20API%20service%20has,for%2060%20requests%20per%20minute) where experiments have been done to identify the average number of requests per minute. 
+
+Below you are provided with a code that benchmarks the API calls; you can play with the number of requests and the request interval to see the average time of a request. In case you perform too many requests so that you violate the rate limits, you will get a 429 status code.
+
+*Note*: This code may take a few minutes to run.
+
+```Python
+
+import time
+
+# Define the Spotify API endpoint
+endpoint = 'https://api.spotify.com/v1/browse/new-releases'
+
+headers = get_auth_header(access_token=token.get('access_token'))
+
+# Define the number of requests to make
+num_requests = 200
+
+# Define the interval between requests (in seconds)
+request_interval = 0.1  # Adjust as needed based on the API rate limit
+
+# Store the timestamps of successful requests
+success_timestamps = []
+
+# Make repeated requests to the endpoint
+for i in range(num_requests):
+    # Make the request
+    response = requests.get(url=endpoint, headers=headers)
+    
+    # Check if the request was successful
+    if response.status_code == 200:
+        success_timestamps.append(time.time())
+    else:        
+        print(f'Request {i+1}: Failed with code {response.status_code}')
+    
+    # Wait for the specified interval before making the next request
+    time.sleep(request_interval)
+
+# Calculate the time between successful requests
+if len(success_timestamps) > 1:
+    time_gaps = [success_timestamps[i] - success_timestamps[i-1] for i in range(1, len(success_timestamps))]
+    print(f'Average time between successful requests: {sum(time_gaps) / len(time_gaps):.2f} seconds')
+else:
+    print('At least two successful requests are needed to calculate the time between requests.')
+
+```
 
 
 
