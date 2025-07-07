@@ -22,13 +22,18 @@ I added my own extra notes and reorganized the structure of the document for my 
       - [ Client ID and Client secret](#2-2-a)
       - [ get_token()](#2-2-b)      
       - [ get_auth_header()](#2-2-c)      
-  - [ 2.3 - Perform a Request to New Releases](#2-3)
-      - [ Simple Request](#2-3-a)
-      - [ Pagination)](#2-3-b)
-      - [ get_paginated_new_releases())](#2-3-c)  
-  
-  
+  - [ 2.3 - Simple Request to New Releases](#2-3)
+      - [ get_new_releases()](#2-3-a)
+      - [ Result](#2-3-b)
+  - [ 2.4 - Paginated Request to New Releases](#2-4)
+      - [ Pagination)](#2-4-a)  
+      - [ get_paginated_with_offset_new_releases())](#2-4-b)    
+      - [ get_paginated_with_next_new_releases())](#2-4-b)         
+      
+      
   - [ 2.4 - Optional - API Rate Limits](#2-4)
+  
+
 - [ 3 - Batch pipeline](#3)
   - [ Exercise 4](#ex04)
   - [ Exercise 5](#ex05)
@@ -164,13 +169,13 @@ The function `get_auth_header` in `authentication.py` expects the access token a
 
 
 <a id='2-3'></a>
-### 2.3 - Perform a Request to New Releases
+### 2.3 - Simple Request to New Releases
 *__Each API manages responses in its own way so it is highly recommended to read the documentation and understand the nuances behind the API endpoints you are working with.__*
 
 
 <a id='2-3-a'></a>
-#### Simple Request: get_new_releases()
-The `get_new_releases` function:
+#### get_new_releases()
+The `get_new_releases` function in `endpoint_requests_less_efficient`:
 
 1. Calls the function `get_auth_header`and passes to it the access token (which is specified as input to the `get_new_releases` function). 
 2. It saves the output of `get_auth_header` to a variable called `headers`.
@@ -194,6 +199,8 @@ pass the URL and the `access_token` value from the `token` object that you obtai
 
 `releases_response = get_new_releases(url=URL_NEW_RELEASES, access_token=token.get('access_token'))`
 
+
+<a id='2-3-b'></a>
 ##### Result
 The result is a JSON object that was trasnformed into a python dictionary. Exploring the structure should give:
 
@@ -216,8 +223,10 @@ output: dict_keys(['href', 'items', 'limit', 'next', 'offset', 'previous', 'tota
 
   
 
+<a id='2-4'></a>
+### 2.3 - Paginated to New Releases
 
-<a id='2-3-b'></a>
+<a id='2-4-a'></a>
 #### Pagination
 `'limit'` and `'offset'` are the base of pagination in this API endpoint.
 
@@ -233,7 +242,7 @@ For Spotify, the requests response provides you with two fields that allow you t
 
 <br>
 If you compare the URLs provided by the `href` and `next` fields, you can see that while the `limit` parameter remains the same, the `offset` parameter has increased with the same value as the one stored in `limit`.
-```json
+```
 {
 ...,
 'href': 'https://api.spotify.com/v1/browse/new-releases?offset=0&limit=20',
@@ -242,8 +251,10 @@ If you compare the URLs provided by the `href` and `next` fields, you can see th
 ...
 }
 ```
+
 And for the next one it is:
-```json
+
+```
 {
 ...,
 'href': 'https://api.spotify.com/v1/browse/new-releases?offset=20&limit=20',
@@ -257,7 +268,7 @@ And for the next one it is:
 
 As the responses show that the `total` value is 100, this means that you can access the last page of responses by using an `offset` of 80, while keeping the `limit` value as 20.
 
-```json
+```
 {
 ...,
 'href': 'https://api.spotify.com/v1/browse/new-releases?offset=60&limit=20',
@@ -266,13 +277,28 @@ As the responses show that the `total` value is 100, this means that you can acc
 ...
 }
 ```
+
 In this case, the value of the `next` field is `None`, indicating that you reached the last page. On the other hand, you can see that `previous` contains the URL to request the data from the previous page, so you can even go backward if required.
 
 
-<a id='2-3-c'></a>
-#### get_paginated_new_releases()
+<a id='2-4-b'></a>
+#### get_paginated_with_offset_new_releases()
 
 
+
+
+
+
+
+
+<a id='2-4-b'></a>
+#### get_paginated_with_next_new_releases()
+The url for the next page is used instead of using a while over the offset-limit being less than the total number of elements in the endpoint:
+
+```python
+# update the url to make the next request
+request_url = response_json["albums"]["next"]
+```
 
 
 
