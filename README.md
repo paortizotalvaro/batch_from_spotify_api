@@ -32,7 +32,8 @@ I added my own extra notes and reorganized the structure of the document for my 
       - [ paginated_with_next_new_releases())](#2-4-b)         
             
 - [ 3 - Batch pipeline](#3)
-  - [ Exercise 4](#ex04)
+  - [ 3.1 - get_paginated_new_releases](#3-1)
+      - [ Handle Token Refresh)](#3-1-a)  
   - [ Exercise 5](#ex05)
   - [ Exercise 6](#ex06)
   
@@ -337,8 +338,86 @@ responses_with_next = paginated_with_next_new_releases(endpoint_request=get_new_
 <a id='3'></a>
 ## <center> 3 - BATCH PIPELINE <\center>
 
+Pipeline that extracts the track information for the new released albums.
+
+This pipeline uses two endpoints:
+* [Get New Releases endpoint](https://developer.spotify.com/documentation/web-api/reference/get-new-releases) 
+* [Get Album Tracks endpoint](https://developer.spotify.com/documentation/web-api/reference/get-an-albums-tracks): this endpoint allows you to get Spotify catalog information about an album’s tracks.
+
+This pipeline uses three scripts that allow you to perform such extraction.
+- The `endpoint.py` file contains two paginated api calls. 
+    - The first one `get_paginated_new_releases`allows you get the list of new album releases using the same paginated call you used in the first part. 
+    - The second one `get_paginated_album_tracks` allows you to get Spotify catalog information about an album’s tracks using the Get Album Tracks endpoint. 
+- The `authentication.py` file contains the script of the `get_token` function that returns an access token.
+- The `main.py` file calls the first paginated API call to get the ids of the new albums. Then for each album id, the second paginated API call is performed to extract the catalog information for each album id. 
+
+
+
 <a id='3-1'></a>
-### 3.1 - PENDING NAME HERE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+### 3.1 - get_paginated_new_releases
+
+<a id='3-1-a'></a>
+#### Handle Token Refresh
+
+In `endpoint_requests_less_efficient`, most of the functions manage paginated requests but without taking into account that the access token has a limited time. <br>
+If your pipeline requests last more than 3600 seconds, you can get a 401 status code error. 
+
+The first step in `get_paginated_new_releases` is to handle token refresh in case it expires:
+* Check the status of the requests response. If it is 401 then get a new token
+* The token has three keys: `access_token`, `token_type`, `expires_in`. Check that the response has the key `access_token` and get the header for the request, otherwise exit with a failing message.
+
+```python
+            if response.status_code == 401:  # Unauthorized
+            
+                # Handle token expiration and update
+                token_response = get_token(**kwargs)
+                if "access_token" in token_response:
+                    headers = get_auth_header(
+                        access_token=token_response["access_token"]
+                    )
+                    print("Token has been refreshed")
+                    continue  # Retry the request with the updated token
+                else:
+                    print("Failed to refresh token.")
+                    return []
+```
+
+
+<a id='3-1-a'></a>
+#### Extract info of tracks in each album
+
+To to extract the information of the tracks that compose each album, the [Get Album Tracks endpoint](https://developer.spotify.com/documentation/web-api/reference/get-an-albums-tracks) is used.
+
+- In `main.py`: after the call to the `get_paginated_new_releases` function, 
+the albums' IDs are extracted from the response and are saved into the `albums_ids` list. Those IDs will be used in the request. 
+
+```python
+    # Getting albums IDs
+    albums_ids = [album["id"] for album in new_releases]
+```
+
+Also, search for the following constant: 
+
+- `URL_ALBUM_TRACKS`: The base URL to get information from a particular album. Take a look at the documentation, you can see that you will have to complement that URL with the album ID and with the `tracks` string to complete the endpoint.
+
+
+This information will be passed to the function `get_paginated_album_tracks` to construct the full endpoint for the API call. In the next exercise, you will work on completing this function in the file `src/endpoint.py`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
