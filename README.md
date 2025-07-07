@@ -27,8 +27,8 @@ I added my own extra notes and reorganized the structure of the document for my 
       - [ Result](#2-3-b)
   - [ 2.4 - Paginated Request to New Releases](#2-4)
       - [ Pagination)](#2-4-a)  
-      - [ get_paginated_with_offset_new_releases())](#2-4-b)    
-      - [ get_paginated_with_next_new_releases())](#2-4-b)         
+      - [ paginated_with_offset_new_releases())](#2-4-b)    
+      - [ paginated_with_next_new_releases())](#2-4-b)         
       
       
   - [ 2.4 - Optional - API Rate Limits](#2-4)
@@ -282,18 +282,25 @@ In this case, the value of the `next` field is `None`, indicating that you reach
 
 
 <a id='2-4-b'></a>
-#### get_paginated_with_offset_new_releases()
+#### paginated_with_offset_new_releases()
 
+Two options: 
+- make the endpoint request directly inside of the function
+- use the previous function get_new_releases() as Callable to perform the endpoint request.
 
-
-
-
+Basic logic used in both options: <br>
+1. The first page is retrieved using requests.get(). <br>
+    This page is addeded to the list new_releases_data.
+2. The value of the offset is updated with the output of step 1
+3. While loop: continue retrieving data from the endpoint as long as the offset is smaller than (total number of elemets - limit). <br>
+  Append all the new data to the list new_releases_data
+  
 
 
 
 <a id='2-4-b'></a>
-#### get_paginated_with_next_new_releases()
-The url for the next page is used instead of using a while over the offset-limit being less than the total number of elements in the endpoint:
+#### paginated_with_next_new_releases()
+Similar to get_paginated_with_offset_new_releases but instead of using a while loop over the offset-limit value, the url for the next page is used:
 
 ```python
 # update the url to make the next request
@@ -301,6 +308,13 @@ request_url = response_json["albums"]["next"]
 ```
 
 
+This allows for a much simpler logic
+
+1. The first page is retrieved through the callable function endpoint_request (it uses requests.get() ). <br>
+    This page is addeded to the list new_releases_data.
+2. The value of the next_page variable is updated with the output of step 1
+3. While loop: continue retrieving data from the endpoint as long as the value of next_page is not null. <br>
+  Append all the new data to the list new_releases_data
 
 
 
