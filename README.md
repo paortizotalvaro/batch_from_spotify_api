@@ -34,13 +34,13 @@ I added my own extra notes and reorganized the structure of the document for my 
 - [ 3 - Batch pipeline](#3)
   - [ 3.1 - get_paginated_new_releases](#3-1)
       - [ Handle Token Refresh)](#3-1-a)  
-  - [ Exercise 5](#ex05)
-  - [ Exercise 6](#ex06)
-  
+  - [ 3.2 - get_paginated_album_tracks](#3-2)
+      - [ Extract Info of Tracks in Each Album)](#3-2-a)  
+        
   
 - [ 4 - Optional](#4)  
   - [ 4.1 - Optional - API Rate Limits](#4-1)
-  - [ 4.1 - Optional - Spotipy SDK](#4-2)
+  - [ 4.2 - Optional - Spotipy SDK](#4-2)
 
 
 
@@ -382,11 +382,18 @@ The first step in `get_paginated_new_releases` is to handle token refresh in cas
                     return []
 ```
 
+<a id='3-2'></a>
+### 3.2 - get_paginated_album_tracks
 
-<a id='3-1-a'></a>
+<a id='3-2-a'></a>
 #### Extract info of tracks in each album
 
-To to extract the information of the tracks that compose each album, the [Get Album Tracks endpoint](https://developer.spotify.com/documentation/web-api/reference/get-an-albums-tracks) is used.
+The following information will be passed to the function `get_paginated_album_tracks` to construct the full endpoint for the API call:
+
+- Get Album Tracks Endpoint
+    - To extract the information of the tracks that compose each album, the [Get Album Tracks endpoint Documentation](https://developer.spotify.com/documentation/web-api/reference/get-an-albums-tracks) is used.
+    - `URL_ALBUM_TRACKS`: The base URL to get information from a particular album. 
+    Looking at the documentation: you will have to complement that URL with the album ID and with the `tracks` string to complete the endpoint.
 
 - In `main.py`: after the call to the `get_paginated_new_releases` function, 
 the albums' IDs are extracted from the response and are saved into the `albums_ids` list. Those IDs will be used in the request. 
@@ -396,12 +403,10 @@ the albums' IDs are extracted from the response and are saved into the `albums_i
     albums_ids = [album["id"] for album in new_releases]
 ```
 
-Also, search for the following constant: 
 
-- `URL_ALBUM_TRACKS`: The base URL to get information from a particular album. Take a look at the documentation, you can see that you will have to complement that URL with the album ID and with the `tracks` string to complete the endpoint.
+The function `get_paginated_album_tracks` has basically the same logic as `get_paginated_new_releases` 
 
 
-This information will be passed to the function `get_paginated_album_tracks` to construct the full endpoint for the API call. In the next exercise, you will work on completing this function in the file `src/endpoint.py`.
 
 
 
@@ -490,6 +495,50 @@ else:
     print('At least two successful requests are needed to calculate the time between requests.')
 
 ```
+
+
+
+
+<a id='4-2'></a>
+### 4.2 - Optional - Spotipy SDK
+
+In several cases, the API developers also provide a Software Development Kit (SDK) to connect and perform requests to the different endpoints of the API without the necessity of creating the code from scratch. 
+
+For Spotify Web API they developed the [Spotipy SDK](https://spotipy.readthedocs.io/en/2.22.1/) to do it. 
+
+This is an example of how it will work to replicate the extraction of data from the new album releases endpoint in a paginated way.
+
+
+``` python
+
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+
+# 1. Credentials
+credentials = SpotifyClientCredentials(
+        client_id=CLIENT_ID, client_secret=CLIENT_SECRET
+    )
+
+spotify = spotipy.Spotify(client_credentials_manager=credentials)
+
+credentials.get_access_token()
+
+# 2. Get data from New album releases
+limit = 20
+response = spotify.new_releases(limit=limit)
+
+
+``` 
+
+1. The `credentials` object handles the authentication process and contains the token to be used in later requests.
+
+        *Note*: Please ignore the `DeprecationWarning` message if you see an access token in the output.
+
+2. Get data from new album releases
+
+NOTE: You can also paginate through these responses. If you check the documentation of the [`new_releases` method](https://spotipy.readthedocs.io/en/2.22.1/#spotipy.client.Spotify.new_releases), you can see that you can specify the parameter `offset`, as you previously did. 
+
+
 
 
 
