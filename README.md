@@ -41,7 +41,7 @@ I added my own extra notes and reorganized the structure of the document for my 
 - [ 4 - Optional](#4)  
   - [ 4.1 - Optional - API Rate Limits](#4-1)
   - [ 4.2 - Optional - Spotipy SDK](#4-2)
-
+      - [ Paginated Request with SDK](#4-2-a)
 
 
 ---
@@ -336,7 +336,7 @@ responses_with_next = paginated_with_next_new_releases(endpoint_request=get_new_
 
 
 <a id='3'></a>
-## <center> 3 - BATCH PIPELINE <\center>
+## <center> 3 - BATCH PIPELINE </center>
 
 Pipeline that extracts the track information for the new released albums.
 
@@ -407,32 +407,8 @@ the albums' IDs are extracted from the response and are saved into the `albums_i
 The function `get_paginated_album_tracks` has basically the same logic as `get_paginated_new_releases` 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <a id='4'></a>
-## <center> 4 - OPTIONAL <\center>
+## <center> 4 - OPTIONAL </center>
 
 <a id='4-1'></a>
 ### 4.1 - Optional - API Rate Limits
@@ -540,7 +516,30 @@ NOTE: You can also paginate through these responses. If you check the documentat
 
 
 
+<a id='4-2-a'></a>
+#### Paginated Request with SDK
 
+``` python
+
+def paginated_new_releases_sdk(limit: int=20) -> list:
+
+    album_data = []
+
+    album_data.extend(response['albums']['items'])
+    total_albums_elements = response['albums']['total']
+    offset_idx = list(range(limit, total_albums_elements, limit))
+
+    for idx in offset_idx: 
+        
+        response_page = spotify.new_releases(limit=limit, offset=idx)
+        album_data.extend(response_page['albums']['items'])
+
+    return album_data
+    
+album_data_sdk = paginated_new_releases_sdk()
+album_data_sdk[0]
+
+```
 
 
 
